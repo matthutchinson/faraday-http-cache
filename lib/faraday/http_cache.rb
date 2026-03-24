@@ -60,6 +60,9 @@ module Faraday
       # The response was cached and can still be used.
       :fresh,
 
+      # The response was stale but served while revalidating asynchronously.
+      :stale,
+
       # The response was cached and the server has validated it with a 304 response.
       :valid,
 
@@ -84,6 +87,8 @@ module Faraday
     # :shared_cache    - A flag to mark the middleware as a shared cache or not.
     # :instrumenter    - An instrumentation object that should respond to 'instrument'.
     # :instrument_name - The String name of the instrument being reported on (optional).
+    # :on_stale        - A Proc/lambda called with request:, env:, cached_response: when
+    #                    a stale response is served within stale-while-revalidate window.
     # :logger          - A logger object.
     # :max_entries     - The maximum number of entries to store per cache key. This option is only
     #                    used when using the +ByUrl+ cache strategy.
@@ -103,7 +108,7 @@ module Faraday
     #   # Initialize the middleware with a MemoryStore and logger
     #   store = ActiveSupport::Cache.lookup_store
     #   Faraday::HttpCache.new(app, store: store, logger: my_logger)
-    def initialize(app, options = {})
+    def initialize(app, options = {}, &block)
       super(app)
 
       options = options.dup
@@ -111,6 +116,7 @@ module Faraday
       @shared_cache = options.delete(:shared_cache) { true }
       @instrumenter = options.delete(:instrumenter)
       @instrument_name = options.delete(:instrument_name) { EVENT_NAME }
+      @on_stale = options.delete(:on_stale) || block
 
       strategy = options.delete(:strategy) { Strategies::ByUrl }
 
@@ -194,6 +200,10 @@ module Faraday
       if entry.fresh? && !@request.no_cache?
         response = entry.to_response(env)
         trace :fresh
+      elsif entry.stale_while_revalidate? && !@request.no_cache?
+        response = entry.to_response(env)
+        trace :stale
+        on_stale(env, entry)
       else
         trace :must_revalidate
         response = validate(entry, env)
@@ -310,6 +320,14 @@ module Faraday
 
     def create_request(env)
       Request.from_env(env)
+    end
+
+    def on_stale(env, cached_response)
+      return unless @on_stale
+
+      @on_stale.call(request: @request, env: env, cached_response: cached_response)
+    rescue StandardError => e
+      @logger&.warn("HTTP Cache: on_stale callback failed: #{e.class}: #{e.message}")
     end
 
     # Internal: Logs the trace info about the incoming request

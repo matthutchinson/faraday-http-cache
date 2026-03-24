@@ -106,4 +106,14 @@ describe Faraday::HttpCache::CacheControl do
     cache_control = Faraday::HttpCache::CacheControl.new('max-age=600')
     expect(cache_control).not_to be_no_cache
   end
+
+  it 'responds to #stale_while_revalidate with an integer when directive present' do
+    cache_control = Faraday::HttpCache::CacheControl.new('public, max-age=60, stale-while-revalidate=300')
+    expect(cache_control.stale_while_revalidate).to eq(300)
+  end
+
+  it 'responds to #stale_while_revalidate with nil when directive absent' do
+    cache_control = Faraday::HttpCache::CacheControl.new('public, max-age=60')
+    expect(cache_control.stale_while_revalidate).to be_nil
+  end
 end

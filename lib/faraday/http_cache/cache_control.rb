@@ -68,6 +68,13 @@ module Faraday
         @directives['proxy-revalidate']
       end
 
+      # Internal: Gets the 'stale-while-revalidate' directive as an Integer.
+      #
+      # Returns nil if the 'stale-while-revalidate' directive isn't present.
+      def stale_while_revalidate
+        @directives['stale-while-revalidate'].to_i if @directives.key?('stale-while-revalidate')
+      end
+
       # Internal: Gets the String representation for the cache directives.
       # Directives are joined by a '=' and then combined into a single String
       # separated by commas. Directives with a 'true' value will omit the '='

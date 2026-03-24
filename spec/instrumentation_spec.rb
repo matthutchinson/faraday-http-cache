@@ -43,6 +43,16 @@ describe 'Instrumentation' do
       expect(events.last.payload.fetch(:cache_status)).to eq(:fresh)
     end
 
+    it 'is :stale if the cache entry is stale but can be served while revalidating' do
+      backend.get('/hello') do
+        [200, { 'Cache-Control' => 'public, max-age=0, stale-while-revalidate=60', 'Date' => Time.now.httpdate, 'Etag' => '123ABCD' }, '']
+      end
+
+      client.get('/hello') # miss
+      client.get('/hello') # stale
+      expect(events.last.payload.fetch(:cache_status)).to eq(:stale)
+    end
+
     it 'is :valid if the cache entry can be validated against the upstream' do
       backend.get('/hello') do
         headers = {

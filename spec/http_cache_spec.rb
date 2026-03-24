@@ -221,6 +221,61 @@ describe Faraday::HttpCache do
     client.get('get')
   end
 
+  describe 'stale-while-revalidate' do
+    let(:on_stale) { double('stale callback', call: nil) }
+    let(:options) { { logger: logger, on_stale: on_stale } }
+
+    it 'serves stale cached responses within stale-while-revalidate window' do
+      expect(client.get('stale-while-revalidate').body).to eq('1')
+
+      response = client.get('stale-while-revalidate')
+      expect(response.body).to eq('1')
+      expect(response.env[:http_cache_trace]).to eq([:stale])
+    end
+
+    it 'invokes the on_stale callback with request, env and cached response' do
+      client.get('stale-while-revalidate')
+
+      expect(on_stale).to receive(:call).with(
+        request: an_instance_of(Faraday::HttpCache::Request),
+        env: an_instance_of(Faraday::Env),
+        cached_response: an_instance_of(Faraday::HttpCache::Response)
+      )
+
+      client.get('stale-while-revalidate')
+    end
+
+    it 'ignores on_stale callback errors and still serves stale response' do
+      failing_callback = lambda do |request:, env:, cached_response:|
+        request && env && cached_response
+        raise 'boom'
+      end
+
+      local_client = Faraday.new(url: ENV['FARADAY_SERVER']) do |stack|
+        stack.use Faraday::HttpCache, logger: logger, on_stale: failing_callback
+        adapter = ENV['FARADAY_ADAPTER']
+        stack.headers['X-Faraday-Adapter'] = adapter
+        stack.headers['Content-Type'] = 'application/x-www-form-urlencoded'
+        stack.adapter adapter.to_sym
+      end
+
+      local_client.get('stale-while-revalidate')
+      expect(logger).to receive(:warn).with(/on_stale callback failed: RuntimeError: boom/)
+
+      response = local_client.get('stale-while-revalidate')
+      expect(response.body).to eq('1')
+      expect(response.env[:http_cache_trace]).to eq([:stale])
+    end
+
+    it 'revalidates when stale-while-revalidate window has expired' do
+      expect(client.get('stale-while-revalidate-expired').body).to eq('1')
+
+      response = client.get('stale-while-revalidate-expired')
+      expect(response.body).to eq('1')
+      expect(response.env[:http_cache_trace]).to eq(%i[must_revalidate valid store])
+    end
+  end
+
   it 'sends the "Last-Modified" header on response validation' do
     client.get('timestamped')
     expect(client.get('timestamped').body).to eq('1')
