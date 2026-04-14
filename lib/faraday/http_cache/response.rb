@@ -54,6 +54,18 @@ module Faraday
         !cache_control.no_cache? && ttl && ttl > 0
       end
 
+      # Internal: Checks if the response is stale but can still be served while
+      # revalidating in the background.
+      #
+      # Returns true when the response has exceeded freshness lifetime, but is
+      # still inside the stale-while-revalidate window.
+      def stale_while_revalidate?
+        return false if cache_control.no_cache?
+        return false unless ttl && stale_while_revalidate
+
+        ttl <= 0 && -ttl <= stale_while_revalidate
+      end
+
       # Internal: Checks if the Response returned a 'Not Modified' status.
       #
       # Returns true if the response status code is 304.
@@ -121,6 +133,13 @@ module Faraday
         cache_control.shared_max_age ||
           cache_control.max_age ||
           (expires && (expires - @now))
+      end
+
+      # Internal: Gets the stale-while-revalidate value in seconds.
+      #
+      # Returns an Integer or nil.
+      def stale_while_revalidate
+        cache_control.stale_while_revalidate
       end
 
       # Internal: Creates a new 'Faraday::Response', merging the stored

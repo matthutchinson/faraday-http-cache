@@ -72,6 +72,31 @@ client = Faraday.new do |builder|
 end
 ```
 
+### Stale-While-Revalidate and background refresh hooks
+
+The middleware supports `stale-while-revalidate` directives from the `Cache-Control` header.
+When a cached response is stale but still inside the `stale-while-revalidate` window, the middleware
+will serve the stale response immediately.
+
+You can provide an `:on_stale` callback to trigger your own asynchronous refresh logic:
+
+```ruby
+client = Faraday.new do |builder|
+  builder.use :http_cache,
+    store: Rails.cache,
+    on_stale: lambda { |request:, env:, cached_response:|
+      RefreshApiCacheJob.perform_later(request.url.to_s)
+    }
+  builder.adapter Faraday.default_adapter
+end
+```
+
+The callback receives:
+
+- `request`: `Faraday::HttpCache::Request`
+- `env`: current `Faraday::Env`
+- `cached_response`: `Faraday::HttpCache::Response`
+
 ### Strategies
 
 You can provide a `:strategy` option to the middleware to specify the strategy to use.
@@ -140,6 +165,8 @@ processes a request. In the event payload, `:env` contains the response Faraday 
 - `:valid` means that the cached response *could* be validated against the server.
 - `:fresh` means that the cached response was still fresh and could be returned without even
   calling the server.
+- `:stale` means that the cached response was stale, but served while inside
+  `stale-while-revalidate` window.
 
 ```ruby
 client = Faraday.new do |builder|
@@ -154,7 +181,7 @@ ActiveSupport::Notifications.subscribe "http_cache.faraday" do |*args|
   statsd = Statsd.new
 
   case cache_status
-  when :fresh, :valid
+  when :fresh, :valid, :stale
     statsd.increment('api-calls.cache_hits')
   when :invalid, :miss
     statsd.increment('api-calls.cache_misses')
@@ -168,6 +195,7 @@ end
 
 You can clone this repository, install its dependencies with Bundler (run `bundle install`) and
 execute the files under the `examples` directory to see a sample of the middleware usage.
+For stale-while-revalidate behavior with `:on_stale`, see `examples/stale_while_revalidate.rb`.
 
 ## What gets cached?
 
@@ -181,7 +209,8 @@ The middleware will use the following headers to make caching decisions:
 
 ### Cache-Control
 
-The `max-age`, `must-revalidate`, `proxy-revalidate` and `s-maxage` directives are checked.
+The `max-age`, `must-revalidate`, `proxy-revalidate`, `s-maxage` and
+`stale-while-revalidate` directives are checked.
 
 ### Shared vs. non-shared caches
 

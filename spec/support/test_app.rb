@@ -61,6 +61,18 @@ class TestApp < Sinatra::Base
     [200, { 'Cache-Control' => 'max-age=200' }, increment_counter]
   end
 
+  get '/stale-while-revalidate' do
+    [200, { 'Cache-Control' => 'max-age=0, stale-while-revalidate=120', 'Date' => Time.now.httpdate, 'ETag' => 'stale' }, increment_counter]
+  end
+
+  get '/stale-while-revalidate-expired' do
+    if env['HTTP_IF_NONE_MATCH'] == '1'
+      [304, {}, '']
+    else
+      [200, { 'Cache-Control' => 'max-age=0, stale-while-revalidate=1', 'Date' => settings.yesterday, 'ETag' => '1' }, increment_counter]
+    end
+  end
+
   post '/delete-with-location' do
     [200, { 'Location' => "#{request.base_url}/get" }, '']
   end

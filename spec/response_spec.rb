@@ -199,6 +199,29 @@ describe Faraday::HttpCache::Response do
     end
   end
 
+  describe 'stale while revalidate' do
+    it 'is true when response is stale but inside stale-while-revalidate window' do
+      headers = { 'Cache-Control' => 'max-age=60, stale-while-revalidate=20', 'Date' => (Time.now - 70).httpdate }
+      response = Faraday::HttpCache::Response.new(response_headers: headers)
+
+      expect(response).to be_stale_while_revalidate
+    end
+
+    it 'is false when response is stale and outside stale-while-revalidate window' do
+      headers = { 'Cache-Control' => 'max-age=60, stale-while-revalidate=20', 'Date' => (Time.now - 90).httpdate }
+      response = Faraday::HttpCache::Response.new(response_headers: headers)
+
+      expect(response).not_to be_stale_while_revalidate
+    end
+
+    it 'is false when no-cache is set' do
+      headers = { 'Cache-Control' => 'max-age=60, stale-while-revalidate=20, no-cache', 'Date' => (Time.now - 70).httpdate }
+      response = Faraday::HttpCache::Response.new(response_headers: headers)
+
+      expect(response).not_to be_stale_while_revalidate
+    end
+  end
+
   describe 'response unboxing' do
     subject { described_class.new(status: 200, response_headers: {}, body: 'Hi!', reason_phrase: 'Success') }
 

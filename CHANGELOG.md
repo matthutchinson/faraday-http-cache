@@ -1,5 +1,8 @@
 ## Unreleased
 
+* Added support for `Cache-Control: stale-while-revalidate`.
+* Added `:on_stale` middleware callback hook to trigger custom background refresh logic when stale cached responses are served.
+
 ## 2.5.1 (2024-01-16)
 
 * Support headers passed in using string keys when Vary header is in a different case via #137 (thanks @evman182)
