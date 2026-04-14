@@ -8,6 +8,7 @@
   "packages": {
     ".": {
       "release-type": "ruby",
+      "version-file": "lib/faraday/http_cache/version.rb",
       "changelog-sections": [
         {"type": "feat", "section": "Features", "hidden": false},
         {"type": "fix", "section": "Bug Fixes", "hidden": false},
