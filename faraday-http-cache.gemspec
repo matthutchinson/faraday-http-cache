@@ -2,7 +2,8 @@
 
 Gem::Specification.new do |gem|
   gem.name          = 'faraday-http-cache'
-  gem.version       = '2.6.1'
+  gem.version       = File.read(File.join(__dir__, 'lib/faraday/http_cache/version.rb'))
+                          .match(/VERSION\s*=\s*'([^']+)'/)[1]
   gem.licenses      = ['Apache-2.0']
   gem.description   = 'Middleware to handle HTTP caching'
   gem.summary       = 'A Faraday middleware that stores and validates cache expiration.'

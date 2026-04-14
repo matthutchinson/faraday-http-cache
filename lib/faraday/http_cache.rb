@@ -6,6 +6,7 @@ require 'faraday/http_cache/storage'
 require 'faraday/http_cache/request'
 require 'faraday/http_cache/response'
 require 'faraday/http_cache/strategies'
+require 'faraday/http_cache/version'
 
 module Faraday
   # Public: The middleware responsible for caching and serving responses.
