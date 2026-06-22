@@ -3,6 +3,33 @@
 * Added support for `Cache-Control: stale-while-revalidate`.
 * Added `:on_stale` middleware callback hook to trigger custom background refresh logic when stale cached responses are served.
 
+## [2.7.0](https://github.com/matthutchinson/faraday-http-cache/compare/v2.7.0...v2.7.0) (2026-06-22)
+
+
+### Bug Fixes
+
+* release-please version-file config and workflow API key auth ([4fd5dd3](https://github.com/matthutchinson/faraday-http-cache/commit/4fd5dd3400740b8ca8bfbf040cd570171b18bc8b))
+* rubocop gem order and target ruby version ([d1b946d](https://github.com/matthutchinson/faraday-http-cache/commit/d1b946d7cc35fe9157178c3b17d48eb4c228d695))
+* rubocop offenses for Ruby 3.2 target ([b223c50](https://github.com/matthutchinson/faraday-http-cache/commit/b223c505aad238afd7cfdbd9d211ef6a040c121c))
+* update test server for Rack 3.x compatibility ([77f228b](https://github.com/matthutchinson/faraday-http-cache/commit/77f228bb4ce619da9ab6c7cf439c71788b55ac05))
+* use API key for RubyGems publish instead of OIDC trusted publishing ([dd859d2](https://github.com/matthutchinson/faraday-http-cache/commit/dd859d24a11a0f873a88cf496ad5f2f41153c9d7))
+* use unique and sorted headers from the vary header ([32243c1](https://github.com/matthutchinson/faraday-http-cache/commit/32243c13573e4868d3cd70890343a59b50d8234f))
+
+
+### Miscellaneous
+
+* add release-please for automated releases to RubyGems ([3e0f9ff](https://github.com/matthutchinson/faraday-http-cache/commit/3e0f9ff2a132438dda0c4980133a8cddf15a448d))
+* bump to 2.6.0, require Ruby 3.2+ ([9227f0c](https://github.com/matthutchinson/faraday-http-cache/commit/9227f0c967c739f761bce3c0c2b6e0e58dbe18cb))
+* bump to 2.6.1 ([198a590](https://github.com/matthutchinson/faraday-http-cache/commit/198a590425b243354038e26b456d00004f1f562d))
+* **main:** release 2.7.0 ([#140](https://github.com/matthutchinson/faraday-http-cache/issues/140)) ([7149226](https://github.com/matthutchinson/faraday-http-cache/commit/71492262f888e2e6fbe5dd3c975551bd362420d2))
+* release 2.7.0 ([a79c386](https://github.com/matthutchinson/faraday-http-cache/commit/a79c386a882b6a4a4ca0f3903794cc5619d7a705))
+* update dependencies and CI to modern versions ([dd8418b](https://github.com/matthutchinson/faraday-http-cache/commit/dd8418b8876ea3367c070f86c3954d017f8f5eba))
+
+
+### Continuous Integration
+
+* Drop unused Travis setting ([1068c85](https://github.com/matthutchinson/faraday-http-cache/commit/1068c850491e1df59c647966d99fcc4bdb0f8700))
+
 ## [2.7.0](https://github.com/sourcelevel/faraday-http-cache/compare/v2.6.1...v2.7.0) (2026-04-14)
 
 
